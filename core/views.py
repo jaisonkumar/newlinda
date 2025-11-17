@@ -295,7 +295,7 @@ import matplotlib.pyplot as plt
 
 from django.conf import settings
 from pdfminer.high_level import extract_text
-from ydata_profiling import ProfileReport
+# from ydata_profiling import ProfileReport
 
 
 def convert_json(o):
@@ -359,13 +359,13 @@ def generate_eda(uploaded_obj, request=None):
     # ------------------------------------------------------------------
     # 4️⃣ GENERATE YDATA PROFILING REPORT (HTML)
     # ------------------------------------------------------------------
-    try:
-        profile = ProfileReport(df, title=f"{uploaded_obj.filename} Profiling Report", explorative=True)
-        report_path = os.path.join(settings.REPORTS_DIR, f"report_{uploaded_obj.id}.html")
-        profile.to_file(report_path)
-    except Exception as e:
-        print("Profiling error:", e)
-        report_path = None
+    # try:
+    #     profile = ProfileReport(df, title=f"{uploaded_obj.filename} Profiling Report", explorative=True)
+    #     report_path = os.path.join(settings.REPORTS_DIR, f"report_{uploaded_obj.id}.html")
+    #     profile.to_file(report_path)
+    # except Exception as e:
+    #     print("Profiling error:", e)
+    #     report_path = None
 
     # ------------------------------------------------------------------
     # 5️⃣ SAVE SIMPLE CHARTS (FIRST 4 NUMERIC COLUMNS)
