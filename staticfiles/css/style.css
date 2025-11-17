@@ -1,0 +1,213 @@
+/* -----------------------------------------------------
+   Global modern styling
+----------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+    background-attachment: fixed;
+    color: #f8fafc;
+}
+
+/* -----------------------------------------------------
+   NAVBAR
+----------------------------------------------------- */
+.nav {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(14px);
+    padding: 16px 30px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.nav a {
+    color: #e2e8f0;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.25s;
+    padding: 8px 14px;
+    border-radius: 8px;
+}
+
+.nav a:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+/* -----------------------------------------------------
+   CONTAINER + CARD
+----------------------------------------------------- */
+.container {
+    padding: 30px;
+    max-width: 1250px;
+    margin: 0 auto;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px);
+    border-radius: 18px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.45);
+}
+
+/* -----------------------------------------------------
+   Messages
+----------------------------------------------------- */
+.messages {
+    list-style: none;
+    padding: 0;
+}
+
+.msg {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.msg.error {
+    background: rgba(255, 76, 76, 0.2);
+    color: #fecaca;
+}
+
+.msg.success {
+    background: rgba(74, 222, 128, 0.2);
+    color: #bbf7d0;
+}
+
+/* -----------------------------------------------------
+   CHAT BOX (ChatGPT style)
+----------------------------------------------------- */
+.chat-box {
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 20px;
+    max-height: 480px;
+    overflow-y: auto;
+    margin-top: 18px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+}
+
+/* CHAT BUBBLES */
+.bubble {
+    padding: 12px 18px;
+    border-radius: 18px;
+    margin: 8px 0;
+    max-width: 75%;
+    font-size: 15px;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease;
+}
+
+.bubble.user {
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    color: white;
+    margin-left: auto;
+}
+
+.bubble.ai {
+    background: rgba(255,255,255,0.15);
+    color: #e2e8f0;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* -----------------------------------------------------
+   INPUT FIELDS + BUTTONS
+----------------------------------------------------- */
+textarea, input, select {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.08);
+    color: #f8fafc;
+    font-size: 15px;
+    margin-top: 6px;
+}
+
+textarea::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+button {
+    padding: 12px 20px;
+    background: linear-gradient(140deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+    margin-top: 10px;
+}
+
+button:hover {
+    background: linear-gradient(140deg, #16a34a, #15803d);
+    transform: scale(1.02);
+}
+
+/* -----------------------------------------------------
+   TABLES (Modern)
+----------------------------------------------------- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #e2e8f0;
+}
+
+table thead {
+    background: rgba(255,255,255,0.12);
+}
+
+table th, table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+table tr:nth-child(even) {
+    background: rgba(255,255,255,0.05);
+}
+
+table tr:hover {
+    background: rgba(255,255,255,0.10);
+    transition: 0.2s;
+}
+
+/* Scrollable table wrapper */
+.scroll-x {
+    overflow-x: auto;
+}
+
+/* -----------------------------------------------------
+   Utility
+----------------------------------------------------- */
+.glow-text {
+    text-shadow: 0 0 8px rgba(255,255,255,0.3);
+}
