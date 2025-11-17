@@ -87,3 +87,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 import django_heroku
 django_heroku.settings(locals())
+
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")

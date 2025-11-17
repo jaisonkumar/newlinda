@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 app_name = "core"
@@ -14,3 +16,7 @@ urlpatterns = [
     path("admin-dashboard/", views.admin_dashboard_view, name="admin_dashboard"),
     path("files/<int:pk>/query/", views.query_file_view, name="query_file"),
 ]
+
+# 🔥 Add this for file uploads (media files)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
