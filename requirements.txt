@@ -4,7 +4,6 @@ pandas
 matplotlib
 whitenoise
 python-dotenv
-textract
 openpyxl
 psycopg2-binary
 google-genai   # or the Google Gen AI / Gemini client library you choose
