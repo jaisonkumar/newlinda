@@ -9,226 +9,168 @@ table {
     border-collapse: collapse;
     margin-top: 10px;
     font-size: 14px;
-
 }
 .table-wrapper td {
-    color: #000 !important;    /* Force BLACK text */
-    background: #fff !important; /* White background so it’s readable */
+    color: #000 !important;
+    background: #fff !important;
 }
 .table-wrapper {
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     border-radius: 8px;
-    padding-bottom: 8px; /* space for scrollbar */
-    background: rgba(255,255,255,0.9); /* white background */
+    padding-bottom: 8px;
+    background: rgba(255,255,255,0.9);
 }
-/* -------------------------------------------------------
-   Scrollbar for Query Explorer Table (High Visibility)
-------------------------------------------------------- */
 .table-wrapper::-webkit-scrollbar {
-    height: 10px;               /* thicker scrollbar */
+    height: 10px;
     background: rgba(0,0,0,0.15);
     border-radius: 10px;
 }
-
 .table-wrapper::-webkit-scrollbar-thumb {
-    background: #475569;        /* visible grey-blue */
+    background: #475569;
     border-radius: 10px;
-    border: 2px solid #e2e8f0;  /* gives good contrast */
+    border: 2px solid #e2e8f0;
 }
-
 .table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #1e293b;        /* darker on hover */
+    background: #1e293b;
 }
-
-/* Firefox support */
 .table-wrapper {
     scrollbar-width: thin;
     scrollbar-color: #475569 rgba(0,0,0,0.15);
 }
 
-
-.table-wrapper table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.table-wrapper::-webkit-scrollbar {
-    height: 8px;
-}
-
-.table-wrapper::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.3);
-    border-radius: 10px;
-}
-
-/* -------------------------------------------------------
-   PAGE LAYOUT
-------------------------------------------------------- */
+/* PAGE LAYOUT */
 .dashboard-container {
     max-width: 1200px;
     margin: 0 auto;
     animation: fadeIn 0.5s ease;
 }
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);}}
 
-@keyframes fadeIn {
-    from { opacity:0; transform: translateY(10px); }
-    to   { opacity:1; transform: translateY(0); }
-}
-
-/* -------------------------------------------------------
-   PAGE TITLE
-------------------------------------------------------- */
+/* TITLE */
 .page-title {
     font-size: 32px;
     font-weight: 700;
-    background: linear-gradient(135deg, #38bdf8, #818cf8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 6px;
+    background: linear-gradient(135deg,#38bdf8,#818cf8);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    margin-bottom:6px;
 }
-
 .page-subtitle {
-    color: #94a3b8;
-    font-size: 15px;
-    margin-bottom: 25px;
+    color:#94a3b8;
+    font-size:15px;
+    margin-bottom:25px;
 }
 
-/* -------------------------------------------------------
-   TABS
-------------------------------------------------------- */
+/* TABS */
 .tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    margin-top: 20px;
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+    margin-top:20px;
 }
-
 .tab-btn {
-    padding: 12px 18px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: #e2e8f0;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.25s;
+    padding:12px 18px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.15);
+    color:#e2e8f0;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.25s;
 }
-
-.tab-btn:hover {
-    background: rgba(255,255,255,0.15);
-    transform: translateY(-2px);
-}
-
+.tab-btn:hover { background:rgba(255,255,255,0.15); transform:translateY(-2px); }
 .tab-btn.active {
-    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-    border: none;
-    color: white;
+    background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+    color:white;
 }
 
-/* -------------------------------------------------------
-   CARDS (GLASS)
-------------------------------------------------------- */
+/* CARDS */
 .card {
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
-    padding: 24px;
-    border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-    border: 1px solid rgba(255,255,255,0.10);
-    margin-bottom: 25px;
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(18px);
+    padding:24px;
+    border-radius:16px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.25);
+    margin-bottom:25px;
 }
 
-/* -------------------------------------------------------
-   CHAT
-------------------------------------------------------- */
-.chat-box {
-    border-radius: 14px;
-    padding: 20px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.12);
-    height: 450px;
-    overflow-y: auto;
-    backdrop-filter: blur(12px);
+/* CHAT SYSTEM (UNIFIED) */
+.chat-wrapper {
+    background:rgba(255,255,255,0.05);
+    border-radius:16px;
+    backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,0.1);
+    padding:0;
+}
+.chat-header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px;
+    border-bottom:1px solid rgba(255,255,255,0.1);
+    font-weight:700;
+    font-size:16px;
+    color:#e2e8f0;
+}
+.chat-ai-icon {
+    width:28px;
+    height:28px;
+}
+.chat-area {
+    height:420px;
+    overflow-y:auto;
+    padding:20px;
+}
+.chat-input-area {
+    display:flex;
+    border-top:1px solid rgba(255,255,255,0.1);
+}
+.chat-input {
+    flex:1;
+    padding:14px;
+    background:rgba(255,255,255,0.08);
+    border:none;
+    color:white;
+    outline:none;
+}
+.send-btn {
+    padding:0 22px;
+    background:#38bdf8;
+    border:none;
+    color:white;
+    cursor:pointer;
 }
 
+/* BUBBLES */
 .bubble {
-    padding: 12px 18px;
-    border-radius: 16px;
-    margin: 12px 0;
-    max-width: 78%;
-    font-size: 15px;
-    animation: fadeIn 0.35s ease;
-    line-height: 1.6;
+    padding:12px 18px;
+    border-radius:16px;
+    margin:12px 0;
+    max-width:78%;
+    font-size:15px;
+    animation:fadeIn 0.35s ease;
 }
-
 .bubble.user {
-    margin-left: auto;
-    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-    color: white;
+    margin-left:auto;
+    background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+    color:white;
 }
-
 .bubble.ai {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: #e2e8f0;
-}
-
-/* -------------------------------------------------------
-   TABLES FOR EDA
-------------------------------------------------------- */
-.eda-table {
-    width: 100%;
-    border-collapse: collapse;
-    border-radius: 14px;
-    overflow: hidden;
-    margin-top: 12px;
-    font-size: 14px;
-}
-
-.eda-table th {
-    background: rgba(255,255,255,0.18);
-    padding: 10px;
-    text-align: left;
-}
-
-.eda-table td {
-    padding: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.eda-table tr:nth-child(even) {
-    background: rgba(255,255,255,0.06);
-}
-
-.scroll-x {
-    overflow-x: auto;
-}
-
-/* -------------------------------------------------------
-   IFRAMES
-------------------------------------------------------- */
-.report-frame {
-    width: 100%;
-    height: 750px;
-    border-radius: 12px;
-    border: none;
-}
-
-/* HIDE TABS LOGIC */
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-/* Section title */
-.section-title {
-    margin-top: 25px;
-    font-size: 18px;
-    font-weight: 600;
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.15);
     color:#e2e8f0;
 }
 
+/* Tab content */
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+.section-title { margin-top:25px; font-size:18px; font-weight:600; color:#e2e8f0; }
+
+.report-frame { width:100%; height:750px; border:none; border-radius:12px; }
 </style>
+
 
 
 
@@ -237,7 +179,6 @@ table {
     <h1 class="page-title">{{ file.filename }}</h1>
     <p class="page-subtitle">Uploaded at: {{ file.uploaded_at }}</p>
 
-    <!-- ---------------- TABS ---------------- -->
     <div class="tabs">
         <div class="tab-btn active" data-tab="summary-tab">Summary</div>
         <div class="tab-btn" data-tab="report-tab">EDA Report</div>
@@ -245,54 +186,41 @@ table {
         <div class="tab-btn" data-tab="query-tab">Query Explorer</div>
     </div>
 
-    <!-- ---------------- SUMMARY TAB ---------------- -->
+    <!-- SUMMARY TAB -->
     <div class="tab-content active" id="summary-tab">
-
-        <!-- BASIC EDA CARD -->
         <div class="card">
             <h2 class="glow-text">📊 Basic EDA</h2>
 
-            <!-- Column Data Types -->
             <h4 class="section-title">🔹 Column Data Types</h4>
             <table class="eda-table">
-                <thead>
-                    <tr><th>Column</th><th>Data Type</th></tr>
-                </thead>
+                <thead><tr><th>Column</th><th>Data Type</th></tr></thead>
                 <tbody>
                 {% for col, dtype in eda.basic_eda.dtypes.items %}
-                    <tr>
-                        <td>{{ col }}</td>
-                        <td>{{ dtype }}</td>
-                    </tr>
+                    <tr><td>{{ col }}</td><td>{{ dtype }}</td></tr>
                 {% endfor %}
                 </tbody>
             </table>
 
-            <!-- Missing Values -->
             <h4 class="section-title">🔹 Missing Values</h4>
             <table class="eda-table">
                 <thead><tr><th>Column</th><th>Missing</th></tr></thead>
                 <tbody>
                 {% for col, val in eda.basic_eda.missing.items %}
-                    <tr>
-                        <td>{{ col }}</td>
-                        <td>{{ val }}</td>
-                    </tr>
+                    <tr><td>{{ col }}</td><td>{{ val }}</td></tr>
                 {% endfor %}
                 </tbody>
             </table>
 
-            <!-- Describe Stats -->
             <h4 class="section-title">🔹 Describe Statistics</h4>
             <div class="scroll-x">
             <table class="eda-table wide">
                 <thead>
-                <tr>
-                    <th>Column</th>
-                    {% for stat in eda.basic_eda.describe_headers %}
-                        <th>{{ stat }}</th>
-                    {% endfor %}
-                </tr>
+                    <tr>
+                        <th>Column</th>
+                        {% for stat in eda.basic_eda.describe_headers %}
+                            <th>{{ stat }}</th>
+                        {% endfor %}
+                    </tr>
                 </thead>
                 <tbody>
                 {% for col, stats in eda.basic_eda.describe.items %}
@@ -306,239 +234,136 @@ table {
                 </tbody>
             </table>
             </div>
-
         </div>
 
-
-        <!-- DATASET SUMMARY CARD -->
         <div class="card">
             <h2 class="glow-text">📄 Dataset Summary</h2>
-
-            <!-- <p><strong>Shape:</strong> {{ eda.shape }}</p>
-            <p><strong>Columns:</strong> {{ eda.columns }}</p>
-
-            <h4 class="section-title">Preview (Top 5 Rows)</h4>
-            <pre style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px; overflow:auto;">
-{{ eda.head | safe }}
-            </pre> -->
 
             <h4 class="section-title">📈 Charts</h4>
             {% if charts %}
                 {% for c in charts %}
-                    <img src="{{ c }}" style="max-width:280px; margin:10px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.4);"/>
+                    <img src="{{ c }}" style="max-width:280px;margin:10px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.4);" />
                 {% endfor %}
             {% else %}
                 <p>No charts generated.</p>
             {% endif %}
         </div>
-
     </div>
 
-
-    <!-- ---------------- REPORT TAB ---------------- -->
+    <!-- REPORT TAB -->
     <div class="tab-content" id="report-tab">
         <div class="card">
             <h2 class="glow-text">📊 Full Profiling Report</h2>
 
-            <iframe class="report-frame" src="{{ eda.report_url }}"></iframe>
+            {% if eda.report_url %}
+                <iframe class="report-frame" src="{{ eda.report_url }}"></iframe>
+            {% else %}
+                <p>No profiling report available.</p>
+            {% endif %}
         </div>
     </div>
 
-
-    <!-- ---------------- CHAT TAB ---------------- -->
-    <!-- <div class="tab-content" id="chat-tab">
-    <div class="chat-wrapper">
-
-        <div class="chat-header">
-            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" class="chat-ai-icon">
-            <span>Linda</span>
-        </div>
-
-        <div id="chat-box" class="chat-area"></div>
-
-        <form id="qa-form" class="chat-input-area">
-            <textarea id="question" placeholder="Message AI..." class="chat-input"></textarea>
-            <button type="submit" class="send-btn">➤</button>
-        </form>
-
-    </div>
-</div> -->
-<!-- ---------------- QUERY EXPLORER TAB ---------------- -->
-<!-- ---------------- QUERY EXPLORER TAB (MATCH AI CHAT 100%) ---------------- -->
-<div class="tab-content" id="query-tab">
-    <div class="chat-wrapper">
-
-        <!-- Header identical to AI Chat -->
-        <div class="chat-header">
-            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" class="chat-ai-icon">
-            <span>Query Explorer</span>
-        </div>
-
-        <!-- Chat area identical -->
-        <div id="query-box" class="chat-area"></div>
-
-        <!-- Input area identical -->
-        <form id="query-form" class="chat-input-area">
-            <textarea id="query-input" placeholder="Enter a condition... e.g. Age > 30 and Gender == 'Male'" class="chat-input"></textarea>
-            <button type="submit" class="send-btn">➤</button>
-        </form>
-
-    </div>
-</div>
-
-
-
-</div>
-
-
-<!-- ---------------- TAB SWITCH JS ---------------- -->
-
-<script>
-document.getElementById('query-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const text = document.getElementById("query-input").value.trim();
-    if (!text) return;
-
-    const box = document.getElementById("query-box");
-
-    // USER MESSAGE
-    box.innerHTML += `
-        <div class="bubble user">
-            <div class="chat-avatar user"></div>
-            <div class="chat-bubble">${text}</div>
-        </div>
-    `;
-    box.scrollTop = box.scrollHeight;
-    document.getElementById("query-input").value = "";
-
-    // TYPING INDICATOR
-    const loadingId = "loading_" + Date.now();
-    box.innerHTML += `
-        <div class="chat-message ai" id="${loadingId}">
-            <div class="chat-avatar ai"></div>
-            <div class="chat-bubble"><em>Interpreting your query…</em></div>
-        </div>
-    `;
-    box.scrollTop = box.scrollHeight;
-
-    // SEND REQUEST
-    const resp = await fetch("{% url 'core:query_file' file.pk %}", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
-        body: JSON.stringify({ query: text })
-    });
-
-    const data = await resp.json();
-    document.getElementById(loadingId).remove();
-
-    // AI RESPONSE (WITH TABLE SCROLL FIX)
-    box.innerHTML += `
-        <div class="chat-message ai">
-            <div class="chat-avatar ai"></div>
-            <div class="chat-bubble">
-                <div class="table-wrapper">
-                    ${data.html || data.error}
-                </div>
+    <!-- AI CHAT TAB -->
+    <div class="tab-content" id="chat-tab">
+        <div class="chat-wrapper">
+            <div class="chat-header">
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" class="chat-ai-icon">
+                <span>Linda</span>
             </div>
+
+            <div id="chat-box" class="chat-area"></div>
+
+            <form id="qa-form" class="chat-input-area">
+                <textarea id="question" placeholder="Message AI..." class="chat-input"></textarea>
+                <button class="send-btn">➤</button>
+            </form>
         </div>
-    `;
-    box.scrollTop = box.scrollHeight;
-});
-</script>
+    </div>
 
+    <!-- QUERY TAB -->
+    <div class="tab-content" id="query-tab">
+        <div class="chat-wrapper">
+            <div class="chat-header">
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" class="chat-ai-icon">
+                <span>Query Explorer</span>
+            </div>
 
+            <div id="query-box" class="chat-area"></div>
 
+            <form id="query-form" class="chat-input-area">
+                <textarea id="query-input" placeholder="Enter condition... e.g. Age > 30" class="chat-input"></textarea>
+                <button class="send-btn">➤</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- TAB SWITCHING -->
 <script>
 document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
         document.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
-
         btn.classList.add("active");
         document.getElementById(btn.dataset.tab).classList.add("active");
     });
 });
 </script>
-<!-- <script>
-document.getElementById('qa-form').addEventListener('submit', async function(e){
-    e.preventDefault();
 
-    const q = document.getElementById('question').value.trim();
-    if(!q) return;
-    const box = document.getElementById('chat-box');
-
-    // USER MESSAGE
-    box.innerHTML += `
-        <div class="chat-message user">
-            <div class="chat-avatar user"></div>
-            <div class="chat-bubble">${q}</div>
-        </div>
-    `;
-    box.scrollTop = box.scrollHeight;
-    document.getElementById('question').value='';
-
-    // TYPING INDICATOR
-    const typingID = "typing_" + Date.now();
-    box.innerHTML += `
-        <div class="chat-message ai" id="${typingID}">
-            <div class="chat-avatar ai"></div>
-            <div class="chat-bubble"><em>AI is thinking…</em></div>
-        </div>
-    `;
-    box.scrollTop = box.scrollHeight;
-
-    // SEND REQUEST
-    const resp = await fetch("{% url 'core:ask_file' file.pk %}", {
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'},
-        body: JSON.stringify({question: q})
-    });
-
-    const data = await resp.json();
-    const answer = data.answer || "No answer.";
-
-    // REMOVE TYPING
-    document.getElementById(typingID).remove();
-
-    // AI MESSAGE
-    box.innerHTML += `
-        <div class="chat-message ai">
-            <div class="chat-avatar ai"></div>
-            <div class="chat-bubble">${answer}</div>
-        </div>
-    `;
-    box.scrollTop = box.scrollHeight;
-});
-</script> -->
-
-
-<!-- ---------------- CHAT SYSTEM ---------------- -->
+<!-- SINGLE AI CHAT SYSTEM -->
 <script>
 document.getElementById('qa-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    const question = document.getElementById("question").value.trim();
-    if (!question) return;
+    const q = document.getElementById("question").value.trim();
+    if (!q) return;
 
     const box = document.getElementById("chat-box");
-
-    // Add user bubble
-    box.innerHTML += `<div class="bubble user">${question}</div>`;
+    box.innerHTML += `<div class="bubble user">${q}</div>`;
     box.scrollTop = box.scrollHeight;
+
     document.getElementById("question").value = "";
 
     const resp = await fetch("{% url 'core:ask_file' file.pk %}", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
-        body: JSON.stringify({ question })
+        headers: { "Content-Type":"application/json", "X-CSRFToken":"{{ csrf_token }}" },
+        body: JSON.stringify({ question: q })
     });
 
     const data = await resp.json();
     const answer = data.answer || "AI error.";
-
-    // Add AI bubble
     box.innerHTML += `<div class="bubble ai">${answer}</div>`;
+    box.scrollTop = box.scrollHeight;
+});
+</script>
+
+<!-- SINGLE QUERY CHAT SYSTEM -->
+<script>
+document.getElementById('query-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = document.getElementById("query-input").value.trim();
+    if (!text) return;
+
+    const box = document.getElementById("query-box");
+    box.innerHTML += `<div class="bubble user">${text}</div>`;
+    box.scrollTop = box.scrollHeight;
+
+    document.getElementById("query-input").value = "";
+
+    const resp = await fetch("{% url 'core:query_file' file.pk %}", {
+        method: "POST",
+        headers: { "Content-Type":"application/json", "X-CSRFToken":"{{ csrf_token }}" },
+        body: JSON.stringify({ query: text })
+    });
+
+    const data = await resp.json();
+
+    if (data.error) {
+        box.innerHTML += `<div class="bubble ai">${data.error}</div>`;
+    } else {
+        box.innerHTML += `<div class="bubble ai"><div class="table-wrapper">${data.html}</div></div>`;
+    }
+
     box.scrollTop = box.scrollHeight;
 });
 </script>
