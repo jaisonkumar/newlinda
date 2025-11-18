@@ -356,8 +356,9 @@ def generate_eda(uploaded_obj, request=None):
     - Matplotlib numeric distribution charts
     - Basic EDA summary (dtypes, missing values, describe stats)
     """
-
-    file_buffer = download_temp_file(uploaded_obj.file)
+    file_url = uploaded_obj.file.url  
+    response = requests.get(file_url)
+    file_buffer = BytesIO(response.content)
     ext = uploaded_obj.filename.lower().split(".")[-1]
 
 
