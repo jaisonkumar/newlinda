@@ -6,12 +6,7 @@ whitenoise
 python-dotenv
 openpyxl
 psycopg2-binary
-google-genai  
-dj-database-url
 gunicorn
-whitenoise
-django-heroku
-psycopg2-binary
 pdfminer.six
 ydata-profiling
 cloudinary
