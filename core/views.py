@@ -42,19 +42,17 @@ from django.core.files.storage import default_storage
 
 def download_temp_file(django_file):
     """
-    Downloads a Cloudinary file to a temporary local file path.
-    Returns the local file path.
+    Downloads a Cloudinary file into memory.
+    Returns a BytesIO object instead of saving to disk.
     """
     url = django_file.url
     resp = requests.get(url)
 
-    temp_path = os.path.join(settings.MEDIA_ROOT, "temp", os.path.basename(url))
-    os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+    buffer = BytesIO()
+    buffer.write(resp.content)
+    buffer.seek(0)
+    return buffer
 
-    with open(temp_path, "wb") as f:
-        f.write(resp.content)
-
-    return temp_path
 
 
 # data libs
@@ -162,9 +160,11 @@ def query_file_view(request, pk):
     ext = obj.filename.lower().split(".")[-1]
     try:
         if ext in ("csv", "txt"):
-            df = pd.read_csv(obj.file.path)
+            buffer = download_temp_file(obj.file)
+            df = pd.read_csv(buffer)
         elif ext in ("xls", "xlsx"):
-            df = pd.read_excel(obj.file.path)
+            buffer = download_temp_file(obj.file)
+            df = pd.read_excel(buffer)
         else:
             return JsonResponse({"error": "Query not supported for this file type"})
     except Exception as e:
@@ -249,14 +249,17 @@ def ask_file_view(request, pk):
     
     try:
         if ext in ("csv", "txt"):
-            df = pd.read_csv(obj.file.path, nrows=200)
+            buffer = download_temp_file(obj.file)
+            df = pd.read_csv(buffer, nrows=200)
             file_text = df.to_csv(index=False)
         elif ext in ("xls", "xlsx"):
-            df = pd.read_excel(obj.file.path, nrows=200)
+            buffer = download_temp_file(obj.file)
+            df = pd.read_excel(buffer, nrows=200)
             file_text = df.to_csv(index=False)
         elif ext == "pdf":
             from pdfminer.high_level import extract_text
-            extracted = extract_text(obj.file.path)
+            buffer = download_temp_file(obj.file)
+            extracted = extract_text(buffer)
             file_text = extracted[:20000] if extracted else "No readable text extracted."
         else:
             file_text = "Unsupported file type for preview."
@@ -354,11 +357,9 @@ def generate_eda(uploaded_obj, request=None):
     - Basic EDA summary (dtypes, missing values, describe stats)
     """
 
-    file_path = uploaded_obj.file.path
+    file_buffer = download_temp_file(uploaded_obj.file)
     ext = uploaded_obj.filename.lower().split(".")[-1]
 
-    os.makedirs(settings.REPORTS_DIR, exist_ok=True)
-    os.makedirs(os.path.join(settings.MEDIA_ROOT, "charts"), exist_ok=True)
 
     # ------------------------------------------------------------------
     # 1️⃣ HANDLE PDF → EXTRACT TEXT → CREATE DATAFRAME
@@ -366,7 +367,7 @@ def generate_eda(uploaded_obj, request=None):
     if ext == "pdf":
         try:
             try:
-                text = extract_text(file_path)
+                text = extract_text(file_buffer)
             except Exception:
                 text = ""
             df = pd.DataFrame({"document_content": [text]})
@@ -378,7 +379,8 @@ def generate_eda(uploaded_obj, request=None):
     # ------------------------------------------------------------------
     elif ext in ("csv", "txt"):
         try:
-            df = pd.read_csv(file_path, on_bad_lines="skip", engine="python")
+            df = pd.read_csv(file_buffer, on_bad_lines="skip", engine="python")
+
         except Exception as e:
             return {"error": f"CSV/TXT read error: {str(e)}"}
 
@@ -387,7 +389,8 @@ def generate_eda(uploaded_obj, request=None):
     # ------------------------------------------------------------------
     elif ext in ("xls", "xlsx"):
         try:
-            df = pd.read_excel(file_path, engine="openpyxl")
+            df = pd.read_excel(file_buffer, engine="openpyxl")
+
         except Exception as e:
             return {"error": f"Excel read error: {str(e)}"}
 
@@ -399,12 +402,26 @@ def generate_eda(uploaded_obj, request=None):
     # ------------------------------------------------------------------
     try:
         profile = ProfileReport(df, title="Report", explorative=True)
-        report_path = os.path.join(settings.REPORTS_DIR, f"report_{uploaded_obj.id}.html")
-        profile.to_file(report_path)
+
+        # Convert report to HTML in memory
+        profile_html = profile.to_html()
+        report_buffer = BytesIO(profile_html.encode("utf-8"))
+        report_buffer.seek(0)
+
+        # Upload to Cloudinary
+        upload = cloudinary.uploader.upload(
+            report_buffer,
+            folder="reports",
+            public_id=f"report_{uploaded_obj.id}",
+            resource_type="raw"
+        )
+        report_url = upload["secure_url"]
 
     except Exception as e:
         print("Profiling error:", e)
-        report_path = None
+        report_url = None
+
+
 
     # ------------------------------------------------------------------
     # 5️⃣ SAVE SIMPLE CHARTS (FIRST 4 NUMERIC COLUMNS)
@@ -422,7 +439,7 @@ def generate_eda(uploaded_obj, request=None):
             chart_url = upload_chart_to_cloudinary(fig, public_id)
             plt.close()
             charts_urls.append(chart_url)
-        except:
+        except Exception as e:
             print("Chart error:", e)
             pass
 
@@ -452,8 +469,7 @@ def generate_eda(uploaded_obj, request=None):
         "head": df.head(5).to_dict(),
         "basic_eda": basic_eda,
         "charts": charts_urls,
-        "report_url": settings.MEDIA_URL + f"reports/report_{uploaded_obj.id}.html"
-                        if report_path else None
+        "report_url": report_url
     }
 
     summary = json.loads(json.dumps(summary, default=convert_json))
