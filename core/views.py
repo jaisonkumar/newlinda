@@ -354,7 +354,7 @@ def generate_eda(uploaded_obj, request=None):
     - Basic EDA summary (dtypes, missing values, describe stats)
     """
 
-    file_path = download_temp_file(uploaded_obj.file)
+    file_path = uploaded_obj.file.path
     ext = uploaded_obj.filename.lower().split(".")[-1]
 
     os.makedirs(settings.REPORTS_DIR, exist_ok=True)
