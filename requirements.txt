@@ -16,3 +16,4 @@ pdfminer.six
 ydata-profiling
 cloudinary
 django-cloudinary-storage
+google-generativeai

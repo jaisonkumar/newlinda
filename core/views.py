@@ -16,6 +16,47 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.contrib.auth.forms import UserCreationForm
 
+from io import BytesIO
+import cloudinary.uploader
+
+def upload_chart_to_cloudinary(fig, public_id):
+    """
+    Saves a Matplotlib figure to Cloudinary and returns the secure URL.
+    """
+    buffer = BytesIO()
+    fig.savefig(buffer, format="png", dpi=150)
+    buffer.seek(0)
+
+    upload = cloudinary.uploader.upload(
+        buffer,
+        folder="charts",
+        public_id=public_id,
+        resource_type="image"
+    )
+
+    return upload["secure_url"]
+
+
+import requests
+from django.core.files.storage import default_storage
+
+def download_temp_file(django_file):
+    """
+    Downloads a Cloudinary file to a temporary local file path.
+    Returns the local file path.
+    """
+    url = django_file.url
+    resp = requests.get(url)
+
+    temp_path = os.path.join(settings.MEDIA_ROOT, "temp", os.path.basename(url))
+    os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+
+    with open(temp_path, "wb") as f:
+        f.write(resp.content)
+
+    return temp_path
+
+
 # data libs
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -99,13 +140,7 @@ def upload_view(request):
 def file_detail_view(request, pk):
     obj = get_object_or_404(UploadedFile, pk=pk, owner=request.user)
     eda = obj.eda_summary or {}
-    charts = []
-    # look for generated charts in media/charts/<obj.id>_*.png
-    charts_dir = os.path.join(settings.MEDIA_ROOT, "charts")
-    if os.path.isdir(charts_dir):
-        for fname in os.listdir(charts_dir):
-            if fname.startswith(f"file_{obj.id}_"):
-                charts.append(settings.MEDIA_URL + "charts/" + fname)
+    charts = obj.eda_summary.get("charts", [])
     return render(request, "core/file_detail.html", {"file": obj, "eda": eda, "charts": charts})
 
 import pandas as pd
@@ -295,7 +330,7 @@ import matplotlib.pyplot as plt
 
 from django.conf import settings
 from pdfminer.high_level import extract_text
-# from ydata_profiling import ProfileReport
+from ydata_profiling import ProfileReport
 
 
 def convert_json(o):
@@ -319,7 +354,7 @@ def generate_eda(uploaded_obj, request=None):
     - Basic EDA summary (dtypes, missing values, describe stats)
     """
 
-    file_path = uploaded_obj.file.path
+    file_path = download_temp_file(uploaded_obj.file)
     ext = uploaded_obj.filename.lower().split(".")[-1]
 
     os.makedirs(settings.REPORTS_DIR, exist_ok=True)
@@ -330,7 +365,10 @@ def generate_eda(uploaded_obj, request=None):
     # ------------------------------------------------------------------
     if ext == "pdf":
         try:
-            text = extract_text(file_path)
+            try:
+                text = extract_text(file_path)
+            except Exception:
+                text = ""
             df = pd.DataFrame({"document_content": [text]})
         except Exception as e:
             return {"error": f"PDF extraction error: {str(e)}"}
@@ -340,7 +378,7 @@ def generate_eda(uploaded_obj, request=None):
     # ------------------------------------------------------------------
     elif ext in ("csv", "txt"):
         try:
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, on_bad_lines="skip", engine="python")
         except Exception as e:
             return {"error": f"CSV/TXT read error: {str(e)}"}
 
@@ -349,7 +387,7 @@ def generate_eda(uploaded_obj, request=None):
     # ------------------------------------------------------------------
     elif ext in ("xls", "xlsx"):
         try:
-            df = pd.read_excel(file_path)
+            df = pd.read_excel(file_path, engine="openpyxl")
         except Exception as e:
             return {"error": f"Excel read error: {str(e)}"}
 
@@ -359,13 +397,14 @@ def generate_eda(uploaded_obj, request=None):
     # ------------------------------------------------------------------
     # 4️⃣ GENERATE YDATA PROFILING REPORT (HTML)
     # ------------------------------------------------------------------
-    # try:
-    #     profile = ProfileReport(df, title=f"{uploaded_obj.filename} Profiling Report", explorative=True)
-    #     report_path = os.path.join(settings.REPORTS_DIR, f"report_{uploaded_obj.id}.html")
-    #     profile.to_file(report_path)
-    # except Exception as e:
-    #     print("Profiling error:", e)
-    #     report_path = None
+    try:
+        profile = ProfileReport(df, title="Report", explorative=True)
+        report_path = os.path.join(settings.REPORTS_DIR, f"report_{uploaded_obj.id}.html")
+        profile.to_file(report_path)
+
+    except Exception as e:
+        print("Profiling error:", e)
+        report_path = None
 
     # ------------------------------------------------------------------
     # 5️⃣ SAVE SIMPLE CHARTS (FIRST 4 NUMERIC COLUMNS)
@@ -378,12 +417,13 @@ def generate_eda(uploaded_obj, request=None):
             plt.figure(figsize=(6, 4))
             df[col].dropna().hist()
             plt.title(f"{col} distribution")
-            fname = f"file_{uploaded_obj.id}_hist_{i}.png"
-            fpath = os.path.join(settings.MEDIA_ROOT, "charts", fname)
-            plt.savefig(fpath)
+            public_id = f"file_{uploaded_obj.id}_hist_{i}"
+            fig = plt.gcf()  # get current figure
+            chart_url = upload_chart_to_cloudinary(fig, public_id)
             plt.close()
-            charts_urls.append(settings.MEDIA_URL + "charts/" + fname)
+            charts_urls.append(chart_url)
         except:
+            print("Chart error:", e)
             pass
 
     # ------------------------------------------------------------------
