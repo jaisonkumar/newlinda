@@ -136,7 +136,6 @@ def logout_view(request):
     logout(request)
     return redirect("core:home")
 
-@login_required
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
