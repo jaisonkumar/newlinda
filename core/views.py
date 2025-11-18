@@ -40,18 +40,40 @@ def upload_chart_to_cloudinary(fig, public_id):
 import requests
 from django.core.files.storage import default_storage
 
+import requests
+from django.core.files.storage import default_storage
+
 def download_temp_file(django_file):
     """
-    Downloads a Cloudinary file into memory.
-    Returns a BytesIO object instead of saving to disk.
+    Return a BytesIO containing the file contents.
+    Works for cloudinary (http(s) URLs) and for storage backends (default_storage).
     """
-    url = django_file.url
-    resp = requests.get(url)
+    from io import BytesIO
 
-    buffer = BytesIO()
-    buffer.write(resp.content)
-    buffer.seek(0)
-    return buffer
+    # If django_file.url is an absolute URL (cloudinary), fetch it
+    url = getattr(django_file, "url", None)
+    if url and (url.startswith("http://") or url.startswith("https://")):
+        try:
+            resp = requests.get(url, timeout=15)
+            resp.raise_for_status()
+            buf = BytesIO(resp.content)
+            buf.seek(0)
+            return buf
+        except Exception as e:
+            raise RuntimeError(f"Could not fetch HTTP file: {e}")
+
+    # Otherwise, try reading using Django storage backend (works for local and many storages)
+    try:
+        name = getattr(django_file, "name", None)
+        if not name:
+            raise RuntimeError("File has no name and is not an HTTP URL.")
+        with default_storage.open(name, "rb") as fh:
+            content = fh.read()
+        buf = BytesIO(content)
+        buf.seek(0)
+        return buf
+    except Exception as e:
+        raise RuntimeError(f"Could not fetch file from storage: {e}")
 
 
 
@@ -115,19 +137,45 @@ def logout_view(request):
     return redirect("core:home")
 
 @login_required
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
+@login_required
 def upload_view(request):
     if request.method == "POST":
         form = UploadForm(request.POST, request.FILES)
         if form.is_valid():
             f = form.cleaned_data["file"]
+
+            # save via default_storage to force the active storage backend (Cloudinary)
             try:
-                obj = UploadedFile.objects.create(owner=request.user, file=f, filename=f.name)
+                # If 'f' is an UploadedFile we can pass its chunks to default_storage
+                saved_name = default_storage.save(f.name, ContentFile(f.read()))
             except Exception as e:
-                # log the exception so you can see the real error in server logs
-                import traceback, sys
+                # fallback: try using default create (old behaviour) and report error
+                import traceback
                 traceback.print_exc()
-                messages.error(request, f"Upload failed: {e}")
+                messages.error(request, f"Upload failed while saving file: {e}")
                 return redirect("core:upload")
+
+            try:
+                obj = UploadedFile.objects.create(
+                    owner=request.user,
+                    file=saved_name,      # store the saved path returned by storage.save()
+                    filename=f.name
+                )
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                messages.error(request, f"Upload failed (DB save): {e}")
+                return redirect("core:upload")
+
+            # debug: log the resulting URL (so you can verify instantly in logs)
+            try:
+                print("DEBUG: uploaded file saved_name=", saved_name, "url=", obj.file.url)
+            except Exception:
+                pass
+
             messages.success(request, "File uploaded. Generating EDA...")
             # optional: run EDA immediately and save summary
             try:
@@ -142,6 +190,8 @@ def upload_view(request):
     else:
         form = UploadForm()
     return render(request, "core/upload.html", {"form": form})
+
+
 
 @login_required
 def file_detail_view(request, pk):
