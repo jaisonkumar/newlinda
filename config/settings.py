@@ -1,17 +1,17 @@
 import os
 from pathlib import Path
 import dj_database_url
-from django.conf import settings
-from django.conf.urls.static import static
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-default-for-local")
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
+# -----------------------------
+# INSTALLED APPS
+# -----------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -20,13 +20,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    # Cloudinary storage must come BEFORE core apps
     "cloudinary_storage",
     "cloudinary",
 
     "core",
 ]
 
-
+# -----------------------------
+# MIDDLEWARE
+# -----------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -76,7 +79,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # -----------------------------
-# CLOUDINARY SETTINGS (safe)
+# CLOUDINARY (correct setup)
 # -----------------------------
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
@@ -87,10 +90,14 @@ CLOUDINARY_STORAGE = {
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
+# -----------------------------
+# INTERNATIONALIZATION
+# -----------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # -----------------------------
@@ -99,15 +106,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # ------------------------------------------------------------
-# CLOUDINARY IMPORTS MUST BE AT BOTTOM (avoid circular import)
+# ❌ DO NOT IMPORT CLOUDINARY HERE!
 # ------------------------------------------------------------
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-
-cloudinary.config(
-    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.environ.get("CLOUDINARY_API_KEY"),
-    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
-    secure=True,
-)
+# django-cloudinary-storage handles config automatically.
+# Manual import causes circular import issues on DO App Platform.
