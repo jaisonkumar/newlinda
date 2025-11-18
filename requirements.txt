@@ -6,7 +6,7 @@ whitenoise
 python-dotenv
 openpyxl
 psycopg2-binary
-google-genai   # or the Google Gen AI / Gemini client library you choose
+google-genai  
 dj-database-url
 gunicorn
 whitenoise
@@ -14,3 +14,5 @@ django-heroku
 psycopg2-binary
 pdfminer.six
 ydata-profiling
+cloudinary
+django-cloudinary-storage
