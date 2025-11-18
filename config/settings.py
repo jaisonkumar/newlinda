@@ -20,6 +20,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "core",
+
+    # Cloudinary apps
     "cloudinary",
     "cloudinary_storage",
 ]
@@ -54,18 +56,50 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database
+# -----------------------------
+# DATABASE
+# -----------------------------
 DATABASES = {
     "default": dj_database_url.config(default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 }
 
-# Cloudinary configuration
+# -----------------------------
+# STATIC & MEDIA
+# -----------------------------
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# -----------------------------
+# CLOUDINARY SETTINGS (safe)
+# -----------------------------
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
     "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
     "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
+    "UPLOAD_OPTIONS": {"resource_type": "auto"},
 }
 
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
+USE_I18N = True
+USE_TZ = True
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# -----------------------------
+# GEMINI
+# -----------------------------
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+# ------------------------------------------------------------
+# CLOUDINARY IMPORTS MUST BE AT BOTTOM (avoid circular import)
+# ------------------------------------------------------------
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -76,30 +110,3 @@ cloudinary.config(
     api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
     secure=True,
 )
-
-
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-
-# Static files
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-# Media (not actually used because of Cloudinary, but safe to keep)
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
-USE_I18N = True
-USE_TZ = True
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# Gemini API Key
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-
-
-
-CLOUDINARY_STORAGE['UPLOAD_OPTIONS'] = {"resource_type": "auto"}
