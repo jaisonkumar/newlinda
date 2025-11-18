@@ -346,7 +346,7 @@ table {
 
 
     <!-- ---------------- CHAT TAB ---------------- -->
-    <div class="tab-content" id="chat-tab">
+    <!-- <div class="tab-content" id="chat-tab">
     <div class="chat-wrapper">
 
         <div class="chat-header">
@@ -362,7 +362,7 @@ table {
         </form>
 
     </div>
-</div>
+</div> -->
 <!-- ---------------- QUERY EXPLORER TAB ---------------- -->
 <!-- ---------------- QUERY EXPLORER TAB (MATCH AI CHAT 100%) ---------------- -->
 <div class="tab-content" id="query-tab">
@@ -404,7 +404,7 @@ document.getElementById('query-form').addEventListener('submit', async (e) => {
 
     // USER MESSAGE
     box.innerHTML += `
-        <div class="chat-message user">
+        <div class="bubble user">
             <div class="chat-avatar user"></div>
             <div class="chat-bubble">${text}</div>
         </div>
@@ -460,7 +460,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     });
 });
 </script>
-<script>
+<!-- <script>
 document.getElementById('qa-form').addEventListener('submit', async function(e){
     e.preventDefault();
 
@@ -510,7 +510,7 @@ document.getElementById('qa-form').addEventListener('submit', async function(e){
     `;
     box.scrollTop = box.scrollHeight;
 });
-</script>
+</script> -->
 
 
 <!-- ---------------- CHAT SYSTEM ---------------- -->

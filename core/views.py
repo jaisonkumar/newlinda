@@ -551,6 +551,33 @@ def generate_eda(uploaded_obj, request=None):
         except Exception:
             charts_urls = []
 
+                # ---------- OPTIONAL YDATA REPORT (lightweight) ----------
+        report_url = None
+        try:
+            from ydata_profiling import ProfileReport
+            profile = ProfileReport(
+                simple_df,
+                minimal=True,          # lightweight mode
+                explorative=False,
+                correlations={"auto": {"calculate": False}},
+            )
+
+            html_buffer = BytesIO()
+            profile.to_file(html_buffer)
+            html_buffer.seek(0)
+
+            upload = cloudinary.uploader.upload(
+                html_buffer,
+                folder="reports",
+                resource_type="raw",
+                public_id=f"report_{uploaded_obj.id}",
+                format="html"
+            )
+            report_url = upload.get("secure_url")
+        except Exception as e:
+            report_url = None
+
+
         # ---------- FINAL SUMMARY ----------
         summary = {
             "shape": tuple(simple_df.shape),
@@ -558,6 +585,7 @@ def generate_eda(uploaded_obj, request=None):
             "head": json.loads(head_rows.to_json(orient="split")) if 'head_rows' in locals() else {},
             "basic_eda": basic_eda,
             "charts": [u for u in charts_urls if u],
+            "report_url": report_url,
         }
 
         # ensure JSON-safe
