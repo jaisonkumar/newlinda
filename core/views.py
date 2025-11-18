@@ -598,7 +598,10 @@ def generate_eda(uploaded_obj, request=None):
                     folder="reports",
                     resource_type="raw",
                     public_id=f"report_{uploaded_obj.id}.html",   # IMPORTANT FIX
-                    format="html"
+                    format="html",
+                    flags="attachment:false",    
+                    type="upload", 
+
                 )
 
             report_url = upload.get("secure_url")
