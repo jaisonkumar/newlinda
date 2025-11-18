@@ -132,10 +132,12 @@ def upload_view(request):
             # optional: run EDA immediately and save summary
             try:
                 eda = generate_eda(obj, request)
-                obj.eda_summary = eda
+                obj.eda_summary = eda or {}
                 obj.save()
             except Exception as e:
-                messages.warning(request, f"EDA generation failed: {e}")
+                messages.warning(request, f"EDA failed: {e}")
+                obj.eda_summary = {}
+                obj.save()
             return redirect("core:file_detail", pk=obj.pk)
     else:
         form = UploadForm()
@@ -145,8 +147,9 @@ def upload_view(request):
 def file_detail_view(request, pk):
     obj = get_object_or_404(UploadedFile, pk=pk, owner=request.user)
     eda = obj.eda_summary or {}
-    charts = obj.eda_summary.get("charts", [])
+    charts = eda.get("charts", [])
     return render(request, "core/file_detail.html", {"file": obj, "eda": eda, "charts": charts})
+
 
 import pandas as pd
 from django.http import JsonResponse
