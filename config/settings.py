@@ -19,12 +19,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "core",
 
-    # Cloudinary apps
-    "cloudinary",
     "cloudinary_storage",
+    "cloudinary",
+
+    "core",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
