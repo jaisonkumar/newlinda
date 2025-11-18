@@ -504,36 +504,36 @@ def generate_eda(uploaded_obj, request=None):
             basic_eda = {
                 "dtypes": simple_df.dtypes.astype(str).to_dict(),
                 "missing": simple_df.isnull().sum().to_dict(),
-                # describe: limit numeric & object separately and slice results to avoid huge objects
-                "describe_numeric": simple_df.select_dtypes(include="number").describe().to_dict() if not simple_df.select_dtypes(include="number").empty else {},
-                "describe_object": simple_df.select_dtypes(include="object").describe().to_dict() if not simple_df.select_dtypes(include="object").empty else {},
-
-                # --- Merge describe_numeric + describe_object for template compatibility ---
-                try:
-                    merged = {}
-
-                    # numeric first
-                    for col, stats in basic_eda["describe_numeric"].items():
-                        merged[col] = stats
-
-                    # object (count, unique, top, freq)
-                    for col, stats in basic_eda["describe_object"].items():
-                        merged[col] = stats
-
-                    # Extract consistent stat headers
-                    all_keys = set()
-                    for stats in merged.values():
-                        all_keys.update(stats.keys())
-
-                    basic_eda["describe"] = merged
-                    basic_eda["describe_headers"] = list(all_keys)
-
-                except Exception as e:
-                    basic_eda["describe"] = {}
-                    basic_eda["describe_headers"] = []
-
-
+                "describe_numeric": simple_df.select_dtypes(include="number").describe().to_dict()
+                                    if not simple_df.select_dtypes(include="number").empty else {},
+                "describe_object": simple_df.select_dtypes(include="object").describe().to_dict()
+                                    if not simple_df.select_dtypes(include="object").empty else {},
             }
+
+            # --- Merge describe results (outside the dictionary) ---
+            try:
+                merged = {}
+
+                # numeric first
+                for col, stats in basic_eda["describe_numeric"].items():
+                    merged[col] = stats
+
+                # object next
+                for col, stats in basic_eda["describe_object"].items():
+                    merged[col] = stats
+
+                # collect headers dynamically
+                headers = set()
+                for stats in merged.values():
+                    headers.update(stats.keys())
+
+                basic_eda["describe"] = merged
+                basic_eda["describe_headers"] = list(headers)
+
+            except Exception:
+                basic_eda["describe"] = {}
+                basic_eda["describe_headers"] = []
+
         except Exception as e:
             basic_eda = {"error": f"Basic EDA failed: {e}"}
 
