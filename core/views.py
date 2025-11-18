@@ -358,133 +358,176 @@ def convert_json(o):
     return str(o)
 
 
+import json
+import numpy as np
+import pandas as pd
+from io import BytesIO
+from django.conf import settings
+from pdfminer.high_level import extract_text
+
+# reuse convert_json (or include it if not present)
+def convert_json(o):
+    if isinstance(o, (np.integer, np.int32, np.int64)):
+        return int(o)
+    if isinstance(o, (np.floating, np.float32, np.float64)):
+        return float(o)
+    if isinstance(o, (np.ndarray,)):
+        return o.tolist()
+    try:
+        # pandas NA
+        import pandas as _pd
+        if _pd.isna(o):
+            return None
+    except Exception:
+        pass
+    return str(o)
+
 def generate_eda(uploaded_obj, request=None):
     """
-    Enhanced EDA using:
-    - ydata_profiling for full HTML report
-    - pdfminer.six for PDF text extraction
-    - Matplotlib numeric distribution charts
-    - Basic EDA summary (dtypes, missing values, describe stats)
+    Lightweight, safe EDA for production.
+    Returns a JSON-serializable dict with:
+      - shape, columns, head (first 5 rows),
+      - basic_eda: dtypes, missing counts, describe (limited),
+      - charts: list of Cloudinary URLs for histograms (up to 3 numeric cols),
+      - errors: optional error message
+    The function will never raise; on unrecoverable errors it returns {'error': '...'}.
     """
-    file_url = uploaded_obj.file.url  
-    response = requests.get(file_url)
-    file_buffer = BytesIO(response.content)
-    ext = uploaded_obj.filename.lower().split(".")[-1]
-
-
-    # ------------------------------------------------------------------
-    # 1️⃣ HANDLE PDF → EXTRACT TEXT → CREATE DATAFRAME
-    # ------------------------------------------------------------------
-    if ext == "pdf":
+    try:
+        # Use helper if available to retrieve file into BytesIO (works for local/cloud URLs)
         try:
+            buffer = None
+            # prefer using download_temp_file if defined in the module
+            if 'download_temp_file' in globals() and callable(download_temp_file):
+                buffer = download_temp_file(uploaded_obj.file)
+            else:
+                # fallback: try reading via url with requests (short timeout)
+                import requests
+                resp = requests.get(uploaded_obj.file.url, timeout=10)
+                buffer = BytesIO(resp.content)
+            buffer.seek(0)
+        except Exception as e:
+            return {"error": f"Could not fetch file: {e}"}
+
+        ext = uploaded_obj.filename.lower().split(".")[-1]
+
+        # Limit rows/load to avoid memory spike
+        nrows_preview = 2000
+        simple_df = None
+
+        if ext in ("csv", "txt"):
             try:
-                text = extract_text(file_buffer)
-            except Exception:
-                text = ""
-            df = pd.DataFrame({"document_content": [text]})
-        except Exception as e:
-            return {"error": f"PDF extraction error: {str(e)}"}
+                # try fast read first, then fallback to python engine on failure
+                try:
+                    df = pd.read_csv(buffer, nrows=nrows_preview, low_memory=True)
+                except Exception:
+                    buffer.seek(0)
+                    df = pd.read_csv(buffer, nrows=nrows_preview, engine="python", on_bad_lines="skip")
+                simple_df = df
+            except Exception as e:
+                return {"error": f"CSV read error: {e}"}
 
-    # ------------------------------------------------------------------
-    # 2️⃣ HANDLE CSV / TXT
-    # ------------------------------------------------------------------
-    elif ext in ("csv", "txt"):
+        elif ext in ("xls", "xlsx"):
+            try:
+                buffer.seek(0)
+                df = pd.read_excel(buffer, nrows=nrows_preview, engine="openpyxl")
+                simple_df = df
+            except Exception as e:
+                return {"error": f"Excel read error: {e}"}
+
+        elif ext == "pdf":
+            try:
+                buffer.seek(0)
+                text = extract_text(buffer) or ""
+                # small dataframe with a preview of text
+                simple_df = pd.DataFrame({"document_content": [text[:10000]]})
+            except Exception as e:
+                return {"error": f"PDF read error: {e}"}
+        else:
+            return {"error": "Unsupported file format for EDA"}
+
+        # ---------- BASIC SUMMARY ----------
         try:
-            df = pd.read_csv(file_buffer, on_bad_lines="skip", engine="python")
+            # head (limit to 5 rows and small strings)
+            head_rows = simple_df.head(5).copy()
+            for col in head_rows.select_dtypes(include=["object"]).columns:
+                head_rows[col] = head_rows[col].astype(str).str.slice(0, 200)
 
+            basic_eda = {
+                "dtypes": simple_df.dtypes.astype(str).to_dict(),
+                "missing": simple_df.isnull().sum().to_dict(),
+                # describe: limit numeric & object separately and slice results to avoid huge objects
+                "describe_numeric": simple_df.select_dtypes(include="number").describe().to_dict() if not simple_df.select_dtypes(include="number").empty else {},
+                "describe_object": simple_df.select_dtypes(include="object").describe().to_dict() if not simple_df.select_dtypes(include="object").empty else {},
+            }
         except Exception as e:
-            return {"error": f"CSV/TXT read error: {str(e)}"}
+            basic_eda = {"error": f"Basic EDA failed: {e}"}
 
-    # ------------------------------------------------------------------
-    # 3️⃣ HANDLE EXCEL
-    # ------------------------------------------------------------------
-    elif ext in ("xls", "xlsx"):
+        # ---------- QUICK CHARTS (up to 3 numeric columns) ----------
+        charts_urls = []
         try:
-            df = pd.read_excel(file_buffer, engine="openpyxl")
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
 
-        except Exception as e:
-            return {"error": f"Excel read error: {str(e)}"}
+            numeric_cols = list(simple_df.select_dtypes(include="number").columns)[:3]
+            for i, col in enumerate(numeric_cols):
+                try:
+                    vals = simple_df[col].dropna()
+                    if vals.shape[0] == 0:
+                        continue
+                    plt.figure(figsize=(4,3))
+                    # small histogram; limited bins
+                    vals.hist(bins=20)
+                    plt.title(f"{col} distribution")
+                    plt.tight_layout()
+                    fig = plt.gcf()
 
-    else:
-        return {"error": "Unsupported file format for EDA"}
+                    # save to BytesIO
+                    buf = BytesIO()
+                    fig.savefig(buf, format="png", dpi=100)
+                    plt.close(fig)
+                    buf.seek(0)
 
-    # ------------------------------------------------------------------
-    # 4️⃣ GENERATE YDATA PROFILING REPORT (HTML)
-    # ------------------------------------------------------------------
-    try:
-        profile = ProfileReport(df, title="Report", explorative=True)
+                    # upload via helper (uses cloudinary.uploader.upload inside)
+                    try:
+                        public_id = f"file_{uploaded_obj.id}_hist_{i}"
+                        upload = cloudinary.uploader.upload(buf, folder="charts", public_id=public_id, resource_type="image")
+                        charts_urls.append(upload.get("secure_url"))
+                    except Exception:
+                        # fallback: do not crash charts step
+                        pass
+                except Exception:
+                    # continue generating other charts
+                    continue
+        except Exception:
+            charts_urls = []
 
-        # Convert report to HTML in memory
-        profile_html = profile.to_html()
-        report_buffer = BytesIO(profile_html.encode("utf-8"))
-        report_buffer.seek(0)
-
-        # Upload to Cloudinary
-        upload = cloudinary.uploader.upload(
-            report_buffer,
-            folder="reports",
-            public_id=f"report_{uploaded_obj.id}",
-            resource_type="raw"
-        )
-        report_url = upload["secure_url"]
-
-    except Exception as e:
-        print("Profiling error:", e)
-        report_url = None
-
-
-
-    # ------------------------------------------------------------------
-    # 5️⃣ SAVE SIMPLE CHARTS (FIRST 4 NUMERIC COLUMNS)
-    # ------------------------------------------------------------------
-    charts_urls = []
-    numeric_cols = df.select_dtypes(include="number").columns[:4]
-
-    for i, col in enumerate(numeric_cols):
-        try:
-            plt.figure(figsize=(6, 4))
-            df[col].dropna().hist()
-            plt.title(f"{col} distribution")
-            public_id = f"file_{uploaded_obj.id}_hist_{i}"
-            fig = plt.gcf()  # get current figure
-            chart_url = upload_chart_to_cloudinary(fig, public_id)
-            plt.close()
-            charts_urls.append(chart_url)
-        except Exception as e:
-            print("Chart error:", e)
-            pass
-
-    # ------------------------------------------------------------------
-    # 6️⃣ BASIC EDA SUMMARY (NEW)
-    # ------------------------------------------------------------------
-    try:
-        basic_eda = {
-            "dtypes": df.dtypes.astype(str).to_dict(),
-            "missing": df.isnull().sum().to_dict(),
-            "describe": df.describe(include="all").fillna("").to_dict()
+        # ---------- FINAL SUMMARY ----------
+        summary = {
+            "shape": tuple(simple_df.shape),
+            "columns": list(map(str, simple_df.columns)),
+            "head": json.loads(head_rows.to_json(orient="split")) if 'head_rows' in locals() else {},
+            "basic_eda": basic_eda,
+            "charts": [u for u in charts_urls if u],
         }
+
+        # ensure JSON-safe
         try:
-            first_col = next(iter(basic_eda["describe"].values()))
-            basic_eda["describe_headers"] = list(first_col.keys())
-        except:
-            basic_eda["describe_headers"] = []
+            summary = json.loads(json.dumps(summary, default=convert_json))
+        except Exception:
+            # final fallback: minimal safe summary
+            return {
+                "shape": summary.get("shape"),
+                "columns": summary.get("columns"),
+                "basic_eda": {},
+                "charts": summary.get("charts", []),
+            }
+
+        return summary
+
     except Exception as e:
-        basic_eda = {"error": f"Basic EDA generation error: {e}"}
-
-    # ------------------------------------------------------------------
-    # 7️⃣ FINAL JSON-SAFE SUMMARY FOR UI
-    # ------------------------------------------------------------------
-    summary = {
-        "shape": df.shape,
-        "columns": list(df.columns.astype(str)),
-        "head": df.head(5).to_dict(),
-        "basic_eda": basic_eda,
-        "charts": charts_urls,
-        "report_url": report_url
-    }
-
-    summary = json.loads(json.dumps(summary, default=convert_json))
-    return summary
+        # absolutely never bubble up
+        return {"error": f"Unhandled EDA error: {e}"}
 
 @user_passes_test(lambda u: u.is_staff)
 def admin_dashboard_view(request):
