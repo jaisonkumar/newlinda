@@ -600,7 +600,7 @@ def generate_eda(uploaded_obj, request=None):
                 html_buffer,
                 folder="reports",
                 resource_type="raw",
-                public_id=f"report_{uploaded_obj.id}",
+                public_id=f"report_{uploaded_obj.id}.html",
                 filename=f"report_{uploaded_obj.id}.html",
                 format="html"
             )
