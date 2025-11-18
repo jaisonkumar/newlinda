@@ -120,7 +120,14 @@ def upload_view(request):
         form = UploadForm(request.POST, request.FILES)
         if form.is_valid():
             f = form.cleaned_data["file"]
-            obj = UploadedFile.objects.create(owner=request.user, file=f, filename=f.name)
+            try:
+                obj = UploadedFile.objects.create(owner=request.user, file=f, filename=f.name)
+            except Exception as e:
+                # log the exception so you can see the real error in server logs
+                import traceback, sys
+                traceback.print_exc()
+                messages.error(request, f"Upload failed: {e}")
+                return redirect("core:upload")
             messages.success(request, "File uploaded. Generating EDA...")
             # optional: run EDA immediately and save summary
             try:

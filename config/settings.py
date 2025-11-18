@@ -88,3 +88,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Gemini API Key
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
+CLOUDINARY_STORAGE['UPLOAD_OPTIONS'] = {"resource_type": "auto"}
