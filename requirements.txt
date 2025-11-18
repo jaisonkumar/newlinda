@@ -12,3 +12,11 @@ ydata-profiling
 cloudinary
 django-cloudinary-storage
 google-generativeai
+jinja2
+visions
+dacite
+phik
+joblib
+scipy
+pydantic < 2
+htmlmin

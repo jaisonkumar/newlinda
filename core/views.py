@@ -589,7 +589,11 @@ def generate_eda(uploaded_obj, request=None):
             )
 
             html_buffer = BytesIO()
-            profile.to_file(html_buffer)
+            tmp_path = "/tmp/prof_report.html"
+            profile.to_file(tmp_path)
+            with open(tmp_path, "rb") as f:
+                html_buffer = BytesIO(f.read())
+            html_buffer.seek(0)
             html_buffer.seek(0)
 
             upload = cloudinary.uploader.upload(
@@ -597,6 +601,7 @@ def generate_eda(uploaded_obj, request=None):
                 folder="reports",
                 resource_type="raw",
                 public_id=f"report_{uploaded_obj.id}",
+                filename=f"report_{uploaded_obj.id}.html",
                 format="html"
             )
             report_url = upload.get("secure_url")
