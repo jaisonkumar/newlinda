@@ -289,9 +289,6 @@ Examples:
 
 @login_required
 def ask_file_view(request, pk):
-    """
-    Enhanced AI view: Sends file preview + Basic EDA (dtypes, missing, describe) to Gemini
-    """
     obj = get_object_or_404(UploadedFile, pk=pk, owner=request.user)
 
     if request.method != "POST":
@@ -304,7 +301,7 @@ def ask_file_view(request, pk):
         return JsonResponse({"error": "Empty question"}, status=400)
 
     # -----------------------------
-    # LOAD BASIC EDA FROM DB
+    # LOAD BASIC EDA
     # -----------------------------
     eda = obj.eda_summary or {}
     basic = eda.get("basic_eda", {})
@@ -318,7 +315,7 @@ def ask_file_view(request, pk):
     # -----------------------------
     ext = obj.filename.lower().split(".")[-1]
     file_text = ""
-    
+
     try:
         if ext in ("csv", "txt"):
             buffer = download_temp_file(obj.file)
@@ -329,7 +326,6 @@ def ask_file_view(request, pk):
             df = pd.read_excel(buffer, nrows=200)
             file_text = df.to_csv(index=False)
         elif ext == "pdf":
-            from pdfminer.high_level import extract_text
             buffer = download_temp_file(obj.file)
             extracted = extract_text(buffer)
             file_text = extracted[:20000] if extracted else "No readable text extracted."
@@ -339,42 +335,33 @@ def ask_file_view(request, pk):
         file_text = f"Error reading file: {e}"
 
     # -----------------------------
-    # BUILD THE SUPER-PROMPT
+    # PROMPT
     # -----------------------------
     prompt = f"""
 You are a highly intelligent data analysis assistant.
 
-The user uploaded a file. Below is:
-1. A preview of the file contents
-2. Column Data Types
-3. Missing Values
-4. Describe Statistics (mean, std, min, max, percentiles)
+Below is:
+- File preview
+- Column types
+- Missing values
+- Describe stats
 
-Use all this information to answer the user's question clearly and accurately.
-Remember to generate plain text answers without any special formatting like ** or anything similar
---------------------
-📄 FILE PREVIEW (first rows):
+Use them to answer the question.
+
+FILE PREVIEW:
 {file_text}
 
---------------------
-📘 COLUMN DATA TYPES:
+COLUMN TYPES:
 {json.dumps(dtypes, indent=2)}
 
---------------------
-🟨 MISSING VALUES:
+MISSING VALUES:
 {json.dumps(missing, indent=2)}
 
---------------------
-📊 DESCRIBE STATISTICS:
+DESCRIBE:
 {json.dumps(describe, indent=2)}
 
---------------------
-❓ USER QUESTION:
+USER QUESTION:
 {question}
-
-When referencing columns, always use exact column names.
-If data suggests patterns, highlight them.
-Provide short but accurate answers.
 """
 
     # -----------------------------
@@ -389,41 +376,26 @@ Provide short but accurate answers.
         model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content(prompt)
         answer = response.text
-    # -----------------------------
-    # CHECK IF AI ACTUALLY USED FILE CONTENT OR NOT
-    # -----------------------------
-    try:
-        # For CSV/Excel files → check column names
-        if isinstance(df, pd.DataFrame):
-            file_columns = [c.lower() for c in df.columns]
-            used = False
-            for c in file_columns:
-                if c in answer.lower():
-                    used = True
-                    break
 
-            if not used:
-                answer = (
-                    "I could not find enough relevant information in your file to answer this question directly.\n"
-                    f"\nGeneral answer:\n{answer}"
-                )
-
-        # For PDFs → check if extracted text is meaningful
-        else:
-            if not file_text.strip() or "no readable" in file_text.lower():
-                answer = (
-                    "I could not find useful content in your file to answer this question directly.\n"
-                    f"\nGeneral answer:\n{answer}"
-                )
-    except Exception:
-        # Safety fallback — do nothing
-        pass
-
+        # -----------------------------
+        # CHECK IF AI USED DATA
+        # -----------------------------
+        try:
+            if isinstance(df, pd.DataFrame):
+                used = any(col.lower() in answer.lower() for col in df.columns)
+                if not used:
+                    answer = (
+                        "I could not find enough relevant information in your file to answer this question directly.\n\n"
+                        f"General answer:\n{answer}"
+                    )
+        except Exception:
+            pass
 
     except Exception as e:
         answer = f"AI error: {e}"
 
     return JsonResponse({"answer": answer})
+
 
 import os
 import json
