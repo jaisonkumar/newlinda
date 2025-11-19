@@ -380,14 +380,14 @@ USER QUESTION:
         # -----------------------------
         # CHECK IF AI USED DATA
         # -----------------------------
-        try:
-            if isinstance(df, pd.DataFrame):
-                used = any(col.lower() in answer.lower() for col in df.columns)
-                if not used:
-                    answer = (
-                        "I could not find enough relevant information in your file to answer this question directly.\n\n"
-                        f"General answer:\n{answer}"
-                    )
+        # try:
+        #     if isinstance(df, pd.DataFrame):
+        #         used = any(col.lower() in answer.lower() for col in df.columns)
+        #         if not used:
+        #             answer = (
+        #                 "I could not find enough relevant information in your file to answer this question directly.\n\n"
+        #                 f"General answer:\n{answer}"
+        #             )
         except Exception:
             pass
 
