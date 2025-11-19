@@ -388,8 +388,8 @@ USER QUESTION:
         #                 "I could not find enough relevant information in your file to answer this question directly.\n\n"
         #                 f"General answer:\n{answer}"
         #             )
-        except Exception:
-            pass
+        # except Exception:
+        #     pass
 
     except Exception as e:
         answer = f"AI error: {e}"
