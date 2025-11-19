@@ -257,6 +257,19 @@ Examples:
     except Exception as e:
         return JsonResponse({"error": f"AI failed: {e}"})
 
+    # -----------------------------
+    # CHECK IF QUERY REFERENCES ANY VALID COLUMNS
+    # -----------------------------
+    lower_cols = [c.lower() for c in df.columns]
+    query_lower = pandas_query.lower()
+
+    used_col = any(col in query_lower for col in lower_cols)
+
+    if not used_col:
+        return JsonResponse({
+            "error": "I could not find matching columns in your file related to your question.",
+            "general": f"This is the interpreted query, but it does not match your file: {pandas_query}"
+        })
 
     # Run the query safely
     try:
@@ -376,6 +389,36 @@ Provide short but accurate answers.
         model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content(prompt)
         answer = response.text
+    # -----------------------------
+    # CHECK IF AI ACTUALLY USED FILE CONTENT OR NOT
+    # -----------------------------
+    try:
+        # For CSV/Excel files → check column names
+        if isinstance(df, pd.DataFrame):
+            file_columns = [c.lower() for c in df.columns]
+            used = False
+            for c in file_columns:
+                if c in answer.lower():
+                    used = True
+                    break
+
+            if not used:
+                answer = (
+                    "I could not find enough relevant information in your file to answer this question directly.\n"
+                    f"\nGeneral answer:\n{answer}"
+                )
+
+        # For PDFs → check if extracted text is meaningful
+        else:
+            if not file_text.strip() or "no readable" in file_text.lower():
+                answer = (
+                    "I could not find useful content in your file to answer this question directly.\n"
+                    f"\nGeneral answer:\n{answer}"
+                )
+    except Exception:
+        # Safety fallback — do nothing
+        pass
+
 
     except Exception as e:
         answer = f"AI error: {e}"
