@@ -338,15 +338,14 @@ def ask_file_view(request, pk):
     # PROMPT
     # -----------------------------
     prompt = f"""
-You are a highly intelligent data analysis assistant.
+You are an AI assistant that can analyze the uploaded file AND also answer general knowledge questions.
 
-Below is:
-- File preview
-- Column types
-- Missing values
-- Describe stats
+If the user's question is related to the file, use the file preview, dtypes, missing values, or describe stats.
 
-Use them to answer the question.
+If the user's question is NOT related to the file (e.g., EU AI Act, history, science, definitions),
+answer normally using your general knowledge.
+
+Never say that you “cannot answer” or that you are “only designed to analyze data.”
 
 FILE PREVIEW:
 {file_text}
@@ -363,6 +362,7 @@ DESCRIBE:
 USER QUESTION:
 {question}
 """
+
 
     # -----------------------------
     # CALL GEMINI
